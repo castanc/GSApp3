@@ -6,7 +6,8 @@
   <!--
   <meta name="viewport" content="width=device-width, initial-scale=1">
   -->
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 
   <base target="_top">
   <!-- 
@@ -40,15 +41,12 @@
 
 
 <body class="big-font">
-  <?!= include('frontend/menu2'); ?>
+  <div class="col-md-12">
+    <?!= include('frontend/menu2'); ?>
+  </div>
   <div class="container-fluid">
-    <div class="big-font">
-      <?!= include('frontend/navbar2'); ?>
-    </div>
-
     <div id="mainContent">
       <form id="myForm">
-
         <div id="DIVfechaHora">
           <div class="row">
             <div class="col-md text-responsive">
@@ -66,16 +64,20 @@
             </div>
             <div class="col-md">
               <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
-                pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time title-font" 
-                style="color: black;"
-                required>
+                pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time title-font"
+                style="color: black;" required>
             </div>
           </div>
         </div>
 
         <div id="DIVrecType" class="row">
           <div id="REC_TYPE" class="col-md"> </div>
+          <div class="row">
+            <div class="col-md text-responsive">
+            </div>
+          </div>
         </div>
+
     </div>
     <div id="spinner" class="spinner-border text-primary" id="spinner" role="status" style="display:none;">
       <span class="sr-only">Loading...</span>
@@ -86,10 +88,27 @@
   <div id="content"></div>
   </div>
 
+  <div id="mainButtons">
+    <div class="row">
+      <div class="col-md-2 title-font">
+        <button type="button" class="btn btn-primary btn-block" onclick="processForm()">OK</button>
+      </div>
+      <div class="col-md-2 title-font">
+        <button type="button" class="btn btn-secondary btn-block" onclick="cancelSubmit()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
   <div id="chart" class="row">
 
   </div>
 
+  <div id="reportForm" style="display: none; z-index: -1;">
+    <?!= include('frontend/report'); ?>
+  </div>
+  <div id="totales">
+  </div>
   <div id="report">
   </div>
 

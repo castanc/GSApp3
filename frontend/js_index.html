@@ -42,6 +42,8 @@
     let minG = 0;
     let maxG = 999;
     let sortDescending = false;
+    let sortDescending2 = false;
+    let sortCol2 = 0;
     let countGluc = 0;
     let action = "";
     let minutes1 = 0;
@@ -56,6 +58,8 @@
     let fechaDesde = "";
     let overrideLocalStorage = false;
     let lastDay = 0;
+    let reportType = "";
+    let reportMethod;
 
 
 
@@ -343,6 +347,20 @@
     }
 
 
+    function sortFunction2(a, b) {
+
+
+        if (a[sortCol2] == b[sortCol2]) {
+            return 0;
+        }
+        else {
+            if (sortDescending)
+                return (a[sortCol2] > b[sortCol2]) ? -1 : 1;
+            else
+                return (a[sortCol2] < b[sortCol2]) ? -1 : 1;
+        }
+    }
+
 
     function buildRecords0(recType, id, defValue = "") {
         result = defValue;
@@ -613,7 +631,11 @@
         showDiv("spinner");
         sortDescending = !sortDescending;
         lastDay = 0;
-        renderMaster();
+        if (reportType == "2")
+            renderMaster();
+        else if (reportType == "0")
+            renderMaster0();
+
         hideDiv("spinner");
     }
 
@@ -635,7 +657,7 @@
         console.log("Data", Data);
         console.log(`filtrar() ${horaDesde} ${horaHasta} ${glucMin} ${glucMax},x:${x}`);
         lastDay = 0;
-        renderMaster();
+        doReport();
         hideDiv("spinner");
     }
 
@@ -652,7 +674,7 @@
 
 
     function drawChart() {
-        let fontSize = "font-size:22px;";
+        let fontSize = "font-size:32px;";
         let color = "color:white;";
         let style = `style="${fontSize} ${color}"`;
         let percText = "";
@@ -787,7 +809,7 @@
 
     }
     function getGlucTotals() {
-        let fontSize = "font-size:22px;";
+        let fontSize = "font-size:32px;";
         let color = "color:white;";
         let style = `style="${fontSize} ${color}"`;
 
@@ -960,7 +982,7 @@
         writeInnerHtml("btnReport", "Reporte");
         writeInnerHtml("title", glucTotalsHtml);
         writeInnerHtml("report", row);
-        setFilterData();
+        showDiv("totales");
     }
 
     function buildRow(iconTag, styleTag, iconColor, divRecords, master2) {
@@ -1003,7 +1025,7 @@
         let iconTag = "";
         let iconColor = "";
         let styleTag = "";
-        let fontSize = "font-size:22px;";
+        let fontSize = "font-size:32px;";
         let color = "color:white;";
         let style = `style="${fontSize} ${color}"`;
         let glucRow = "";
@@ -1087,8 +1109,7 @@
                             if (master2[i][9] == "GLUC") {
 
                                 gl = GlucLevels.filter(x => master2[i][12] >= x.min && master2[i][12] < x.max);
-                                if (gl.length > 0 && glucDay == 0 )
-                                {
+                                if (gl.length > 0 && glucDay == 0) {
                                     gl[0].count++;
                                     countGluc++;
                                 }
@@ -1099,7 +1120,7 @@
                                 else {
                                     gl = GlucLevels.filter(x => master2[i][12] >= x.min && master2[i][12] < x.max);
                                     if (gl.length > 0) {
-                                        styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[i][12] * 3}px;"`;
+                                        styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[i][12] * 2}px;"`;
                                     }
                                     dayRows = `${dayRows}
                                     ${buildRow(iconTag, styleTag, iconColor, divRecords, master2[i])}`;
@@ -1121,8 +1142,10 @@
                             styleTag = `style="${fontSize} ${iconColor}"`;
                         }
 
-                        if ( glucDay > 1 )
+                        if (glucDay > 1)
                             iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="fa fa-heartbeat"></i></span>`;
+                        else if (glucDay == 0)
+                            iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="far fa-map-marker"></i></span>`;
                         else
                             iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="${icon}"></i></span>`;
 
@@ -1137,7 +1160,7 @@
                         else {
                             gl = GlucLevels.filter(x => master2[glucRowId][12] >= x.min && master2[glucRowId][12] < x.max);
                             if (gl.length > 0) {
-                                styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[glucRowId][12] * 3}px;"`;
+                                styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[glucRowId][12] * 2}px;"`;
                             }
 
                             glucRow = buildGlucRow(lastDay, iconTag, styleTag, iconColor, dayRows, master2[glucRowId]);
@@ -1154,14 +1177,16 @@
                 console.log(ex.lineNumber);
             }
         }
-        row = `${row}</div>`;
+        row = `${row}</div>
+        <hr>
+        <a href="#report>Go to Top</a>`;
         countGluc--;
         let glucTotalsHtml = getGlucTotals();
         writeInnerHtml("btnReport", "Reporte");
-        writeInnerHtml("title", glucTotalsHtml);
+        writeInnerHtml("totales", glucTotalsHtml);
         writeInnerHtml("report", row);
-        localStorage.setItem("GlucReport", row);
-        setFilterData();
+        showDiv("totales");
+
     }
 
 
@@ -1173,7 +1198,8 @@
         let row = "";
         if (records.length > 0) {
 
-            row = `<div class="row">
+            row = `<div class="row">P
+
                 <div class="col-md-1"></div>
             <div class="col-md-1"></div>
             <div class="col-md-8">Drug Item</div>
@@ -1241,6 +1267,18 @@
         let required = "";
         let onChange = `onchange="onchange_${name}(this.options[this.selectedIndex].value)"`;
 
+        // if (sortDir == "A" || sortDir == "D" )
+        // {
+        //     sortCol2 = valueCol;
+        //     sortDescending2 = sortDir == "D";
+        //     arr = arr.sort(sortFunction2);
+        // }
+
+        sortCol2 = valueCol;
+        sortDescending2 = false;
+        arr = arr.sort(sortFunction2);
+
+
         if (title.length == 0)
             title = "Select...";
 
@@ -1258,11 +1296,13 @@
         let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${required} ${onChange} class="title-font form-control">
         ${options}</select>`
 
+        //console.log(`getHtml(): startRow:${startRow}`,arr,html);
         return html;
 
     }
 
     function getHtmlSelectFiltered(arr, groupId, title = "", value = "", controlId = "", required = false, startRow = 0) {
+
         arr = arr.filter(x => x[0] == groupId);
         let html = "";
         if (controlId.length > 0)
@@ -1417,6 +1457,19 @@
         return changed;
     }
 
+    function executeReport() {
+        reportType = Data.get("TIPO_REPORTE");
+        if (Data.get("TIPO_REPORTE") == "0") {
+            reportMethod = renderMaster();
+            loadReport();
+        }
+        else if (Data.get("TIPO_REPORTE") == "2") {
+            reportMethod = renderMaster0();
+            loadReport();
+        }
+
+    }
+
     function loadReport() {
         showDiv("spinner");
         subtitle = `<p class="text-into text-center">De: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
@@ -1494,6 +1547,14 @@
 
     }
 
+    function doReport()
+    {
+        if(reportType == "2")
+                renderMaster();
+            else if(reportType == "1")
+                renderMaster0();
+
+    }
 
     function processResponseEdit(json) {
         response = JSON.parse(json);
@@ -1515,7 +1576,8 @@
             master = response.master;
             detail = response.detail;
             lastDay = 0;
-            renderMaster();
+            doReport();
+
         }
         else {
             let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
@@ -1532,6 +1594,7 @@
 
     function processResponseReport(json) {
         response = JSON.parse(json);
+        hideDiv("reportForm");
 
         console.log("Response received from Server. processResponseReport():", response);
         if (response.result == 200) {
@@ -1553,9 +1616,12 @@
             disableButtons(false);
             hideDiv("DIVfechaHora");
             hideDiv("DIVrecType")
-            showDiv("reportArea");
+            showDiv("report");
             lastDay = 0;
-            renderMaster();
+            if (reportType == "2")
+                renderMaster();
+            else if (reportType == "0")
+                renderMaster0();
             disableButtons(false);
         }
         else {
@@ -1583,9 +1649,8 @@
 
     function setReportDates() {
 
-        requiredFields = "FECHA_DESDE,FECHA_HASTA,HORA_DESE,HORA_HASTA,GLUC_DESDE,GLUC_HAST,REC_FILTER,DAY_FILTER";
+        requiredFields = "FECHA_DESDE,FECHA_HASTA,HORA_DESE,HORA_HASTA,GLUC_DESDE,GLUC_HAST,REC_FILTER,DAY_FILTER,TIPO_REPORTE";
         initializeData(requiredFields);
-        hideDiv("submitArea");
 
         dt = new Date();
         let fecha = getDateYMD(dt);
@@ -1595,23 +1660,17 @@
         fecha = getDateYMD(dt1);
         setValueAndData("FECHA_DESDE", fecha);
 
-        minutes1 = 0;
-        minutes2 = 12 * 60;
-
-    }
-
-    function setFilterData() {
-
-        //requiredFields = "HORA_DESDE,HORA_HASTA,GLUC_DESDE,GLUC_HASTA,DIA_SEMANA";
-        //initializeData(requiredFields);
-        hideDiv("submitArea");
-
         setValueAndData("HORA_DESDE", horaDesde);
         setValueAndData("HORA_HASTA", horaHasta);
         setValueAndData("GLUC_DESDE", glucMin.toString());
         setValueAndData("GLUC_HASTA", glucMax.toString());
 
+
+        minutes1 = 0;
+        minutes2 = 12 * 60;
+
     }
+
 
     function clearLocalStorage() {
         localStorage.clear();
@@ -1634,39 +1693,16 @@
         editMode = true;
         action = "Report";
         showDiv("spinner");
-        hideDiv("adminMenu");
         hideDiv("DIVfechaHora");
         hideDiv("DIVrecType");
-        hideDiv("submitArea");
+        hideDiv("report");
         hideDiv("rows");
         recType = "REP";
-        writeInnerHtml("title", "Reporte por Rango de Fechas");
 
-        html = localStorage.getItem("content_REP");
-        if (html == null || html == undefined)
-            html = "";
-
-
-        //todo: if entry is not found is returning as if it exists
-        if (html.lenght == 0 || overrideLocalStorage) {
-            logServer("getting report html from", "server");
-            showMessage("Loading form from server");
-            console.log("loading reprot from server");
-            overrideLocalStorage = false;
-            google.script.run.withFailureHandler(failureHandler)
-                .withSuccessHandler(processResponseLoadReportForm)
-                .getForm("", "report");
-        }
-        else {
-            logServer("report html from local storage", html);
-            writeInnerHtml("content", html);
-            setReportDates();
-            setFilterData();
-            showDiv("reportArea");
-
-        }
+        showDiv("reportForm");
+        setReportDates();
         hideDiv("spinner");
-
+        hideDiv("mainButtons");
     }
 
     function reportYear() {
@@ -1794,7 +1830,6 @@
     function processResponseLoadReportForm(json) {
         processResponse(json);
         setReportDates();
-        setFilterData();
         showDiv("reportArea");
         disableButtons(false);
 
@@ -1826,12 +1861,10 @@
 
     function newRecord() {
         console.log("newRecord");
-        clearDiv("REPORT");
-        hideDiv("reportMenu");
-        hideDiv("adminMenu");
-        hideDiv("reportArea");
+        clearDiv("report");
+        hideDiv("reportForm");
+        showDiv("mainButtons");
         editMode = false;
-        writeInnerHtml("title", "Personal Record Keeper");
         formChanged = false;
         confirming = false;
         refreshDate();
@@ -1842,7 +1875,7 @@
         clearDiv("content");
         clearDiv("rows");
         clearDiv("report");
-        hideDiv("submitArea");
+        hideDiv("totales");
         records = [];
         recType = "";
 
@@ -1850,12 +1883,31 @@
         console.log("newRecord END");
     }
 
+
+    function onchange_TR(e) {
+        reportType = e;
+        Data.update("TIPO_REPORTE", e);
+    }
+
+    function onchange_OR(e) {
+        if (e == "0")
+            sortDescending = false;
+        else
+            sortDescending = true;
+    }
+
     function initialize() {
         showMessage("© 2021 Cesar Castaño");
         showDiv("spinner");
-        hideDiv("reportArea");
         console.log("initialize");
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
+
+        let tipoReport = getHtmlSelectFiltered(Items.arr, "TR", "Seleccione Tipo de Reporte", true);
+        writeInnerHtml("tipoReporte", tipoReport);
+
+        let tipoOrden = getHtmlSelectFiltered(Items.arr, "OR", "", true);
+        writeInnerHtml("tipoOrden", tipoOrden);
+
         newRecord();
 
 
