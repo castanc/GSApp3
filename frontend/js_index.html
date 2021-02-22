@@ -1474,6 +1474,8 @@
         showDiv("spinner");
         subtitle = `<p class="text-into text-center">De: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
         disableButtons(true);
+        hideDiv("totales");
+        hideDiv("report");
         google.script.run.withFailureHandler(failureHandler)
             .withSuccessHandler(processResponseReport)
             .report(Data);
